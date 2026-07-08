@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: petoi-ar-viewer
+    env: static
+    buildCommand: echo "No build needed"
+    staticPublishPath: .
