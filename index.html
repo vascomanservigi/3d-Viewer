@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petoi AR Viewer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="container">
+        <div id="webcam-container">
+            <video id="webcam" autoplay playsinline></video>
+            <canvas id="ar-canvas"></canvas>
+        </div>
+        
+        <div id="ui-controls">
+            <button id="startBtn">Avvia Webcam</button>
+            <button id="addObjectBtn" disabled>Aggiungi Oggetto 3D</button>
+            <select id="objectSelect">
+                <option value="robot">Robot Petoi</option>
+                <option value="cube">Cubo AR</option>
+                <option value="sphere">Sfera Fluttuante</option>
+                <option value="torus">Anello Spaziale</option>
+                <option value="crystal">Cristallo Energetico</option>
+            </select>
+        </div>
+        
+        <div id="info-panel">
+            <h3>Petoi AR Experience</h3>
+            <p>Clicca e trascina per interagire con gli oggetti 3D</p>
+            <p>Scroll per zoom</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "petoi-ar-viewer",
+  "version": "1.0.0",
+  "description": "Realtà aumentata per Petoi Robot con Three.js",
+  "scripts": {
+    "start": "npx http-server -p 8080 -o"
+  },
+  "keywords": ["ar", "webcam", "threejs", "petoi"],
+  "license": "MIT"
+}
