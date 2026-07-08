@@ -13,7 +13,6 @@ class ARViewer {
         this.isWebcamActive = false;
         this.faceDetectionInterval = null;
         this.santaHats = [];
-        this.detectedFaces = [];
         this.modelsLoaded = false;
         
         this.init();
@@ -102,115 +101,22 @@ class ARViewer {
     }
     
     startFaceDetection() {
-        const detectionCanvas = document.createElement('canvas');
-        detectionCanvas.style.position = 'absolute';
-        detectionCanvas.style.top = '0';
-        detectionCanvas.style.left = '0';
-        detectionCanvas.style.visibility = 'hidden';
-        document.body.appendChild(detectionCanvas);
-        
         this.faceDetectionInterval = setInterval(async () => {
             if (!this.video.paused && !this.video.ended) {
-                detectionCanvas.width = this.video.videoWidth;
-                detectionCanvas.height = this.video.videoHeight;
-                const ctx = detectionCanvas.getContext('2d');
-                ctx.drawImage(this.video, 0, 0);
-                
                 const detections = await faceapi.detectAllFaces(
                     this.video,
                     new faceapi.TinyFaceDetectorOptions()
                 ).withFaceLandmarks();
                 
-                this.detectedFaces = detections;
-                
                 this.santaHats.forEach(hat => this.scene.remove(hat));
                 this.santaHats = [];
                 
                 detections.forEach((detection, index) => {
-                    const landmarks = detection.landmarks;
-                    const leftEye = landmarks.getLeftEye();
-                    const rightEye = landmarks.getRightEye();
-                    
-                    const eyeColor = this.analyzeEyeColor(ctx, detectionCanvas, leftEye, rightEye);
-                    const hairColor = this.analyzeHairColor(ctx, detectionCanvas, detection);
-                    
-                    const isBlonde = this.isBlondeHair(hairColor);
-                    const isBlueEyes = this.isBlueEyes(eyeColor);
-                    
-                    if (isBlonde && isBlueEyes) {
-                        this.createSantaHatOnFace(detection);
-                        console.log('🎯 Rilevato: Biondo + Occhi Azzurri! Cappello aggiunto!');
-                    }
+                    this.createSantaHatOnFace(detection);
+                    console.log('🎅 Persona rilevata! Cappello aggiunto!');
                 });
             }
         }, 500);
-    }
-    
-    analyzeEyeColor(ctx, canvas, leftEye, rightEye) {
-        const allEyePoints = [...leftEye, ...rightEye];
-        let totalR = 0, totalG = 0, totalB = 0, count = 0;
-        
-        allEyePoints.forEach(point => {
-            const x = Math.floor(point.x);
-            const y = Math.floor(point.y);
-            
-            for (let dx = -3; dx <= 3; dx++) {
-                for (let dy = -3; dy <= 3; dy++) {
-                    const px = x + dx;
-                    const py = y + dy;
-                    if (px >= 0 && px < canvas.width && py >= 0 && py < canvas.height) {
-                        const pixel = ctx.getImageData(px, py, 1, 1).data;
-                        totalR += pixel[0];
-                        totalG += pixel[1];
-                        totalB += pixel[2];
-                        count++;
-                    }
-                }
-            }
-        });
-        
-        return count > 0 ? { r: totalR/count, g: totalG/count, b: totalB/count } : { r: 0, g: 0, b: 0 };
-    }
-    
-    analyzeHairColor(ctx, canvas, detection) {
-        const box = detection.detection.box;
-        const foreheadY = box.y + box.height * 0.1;
-        const foreheadX = box.x + box.width / 2;
-        
-        let totalR = 0, totalG = 0, totalB = 0, count = 0;
-        
-        for (let dy = -30; dy <= -10; dy++) {
-            for (let dx = -30; dx <= 30; dx++) {
-                const px = Math.floor(foreheadX + dx);
-                const py = Math.floor(foreheadY + dy);
-                
-                if (px >= 0 && px < canvas.width && py >= 0 && py < canvas.height) {
-                    const pixel = ctx.getImageData(px, py, 1, 1).data;
-                    totalR += pixel[0];
-                    totalG += pixel[1];
-                    totalB += pixel[2];
-                    count++;
-                }
-            }
-        }
-        
-        return count > 0 ? { r: totalR/count, g: totalG/count, b: totalB/count } : { r: 0, g: 0, b: 0 };
-    }
-    
-    isBlondeHair(color) {
-        const brightness = (color.r + color.g + color.b) / 3;
-        const isYellowish = color.r > 180 && color.g > 150 && color.b < 150;
-        const isLightBrown = brightness > 120 && color.r > color.b && color.g > color.b;
-        
-        return isYellowish || isLightBrown;
-    }
-    
-    isBlueEyes(color) {
-        const isBlue = color.b > color.r && color.b > color.g && color.b > 80;
-        const isLightBlue = color.b > 100 && color.r < 150 && color.g < 150;
-        const isBlueGray = color.b > 90 && Math.abs(color.r - color.g) < 30;
-        
-        return isBlue || isLightBlue || isBlueGray;
     }
     
     createSantaHatOnFace(detection) {
