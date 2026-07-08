@@ -121,15 +121,26 @@ class ARViewer {
     
     createSantaHatOnFace(detection) {
         const box = detection.detection.box;
+        const landmarks = detection.landmarks;
         const videoWidth = this.video.videoWidth;
         const videoHeight = this.video.videoHeight;
         
-        const x = (box.x + box.width / 2 - videoWidth / 2) / videoWidth * 10;
-        const y = -(box.y - videoHeight / 2) / videoHeight * 8;
-        const scale = box.width / videoWidth * 5;
+        const nose = landmarks.getNose()[3];
+        const leftEye = landmarks.getLeftEye()[0];
+        const rightEye = landmarks.getRightEye()[3];
         
-        const hat = this.createSantaHat(scale * 0.5);
-        hat.position.set(-x, y + 1, -3);
+        const eyeCenter = {
+            x: (leftEye.x + rightEye.x) / 2,
+            y: (leftEye.y + rightEye.y) / 2
+        };
+        
+        const x = (eyeCenter.x - videoWidth / 2) / videoWidth * 10;
+        const y = -(eyeCenter.y - videoHeight / 2) / videoHeight * 8 + 0.8;
+        const faceWidth = Math.abs(rightEye.x - leftEye.x);
+        const scale = faceWidth / videoWidth * 12;
+        
+        const hat = this.createSantaHat(scale);
+        hat.position.set(-x, y, -2.5);
         
         this.scene.add(hat);
         this.santaHats.push(hat);
@@ -138,37 +149,60 @@ class ARViewer {
     createSantaHat(scale = 1) {
         const group = new THREE.Group();
         
-        const coneGeometry = new THREE.ConeGeometry(0.4 * scale, 1 * scale, 32);
+        const coneGeometry = new THREE.ConeGeometry(0.55 * scale, 1.4 * scale, 64, 1);
         const coneMaterial = new THREE.MeshPhongMaterial({ 
-            color: 0xff0000,
-            emissive: 0x330000,
-            emissiveIntensity: 0.3
+            color: 0xcc0000,
+            emissive: 0x220000,
+            emissiveIntensity: 0.1,
+            shininess: 30
         });
         const cone = new THREE.Mesh(coneGeometry, coneMaterial);
-        cone.position.y = 0.5 * scale;
+        cone.position.y = 0.7 * scale;
+        cone.rotation.z = 0.15;
         group.add(cone);
         
-        const brimGeometry = new THREE.CylinderGeometry(0.5 * scale, 0.5 * scale, 0.15 * scale, 32);
-        const brimMaterial = new THREE.MeshPhongMaterial({ 
+        const foldGeometry = new THREE.TorusGeometry(0.5 * scale, 0.12 * scale, 16, 64);
+        const foldMaterial = new THREE.MeshPhongMaterial({ 
             color: 0xffffff,
-            emissive: 0x333333,
-            emissiveIntensity: 0.2
+            emissive: 0x222222,
+            emissiveIntensity: 0.1,
+            shininess: 20
+        });
+        const fold = new THREE.Mesh(foldGeometry, foldMaterial);
+        fold.rotation.x = Math.PI / 2;
+        fold.position.y = 0.05 * scale;
+        group.add(fold);
+        
+        const brimGeometry = new THREE.CylinderGeometry(0.52 * scale, 0.52 * scale, 0.1 * scale, 64);
+        const brimMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0xfafafa,
+            emissive: 0x111111,
+            emissiveIntensity: 0.1,
+            shininess: 15
         });
         const brim = new THREE.Mesh(brimGeometry, brimMaterial);
         group.add(brim);
         
-        const pomponGeometry = new THREE.SphereGeometry(0.15 * scale, 16, 16);
+        const pomponGeometry = new THREE.SphereGeometry(0.18 * scale, 32, 32);
         const pomponMaterial = new THREE.MeshPhongMaterial({ 
             color: 0xffffff,
-            emissive: 0x333333,
-            emissiveIntensity: 0.3
+            emissive: 0x222222,
+            emissiveIntensity: 0.15,
+            shininess: 10
         });
         const pompon = new THREE.Mesh(pomponGeometry, pomponMaterial);
-        pompon.position.y = 1.1 * scale;
-        pompon.position.x = 0.15 * scale;
+        pompon.position.set(0.25 * scale, 1.35 * scale, 0);
         group.add(pompon);
         
-        group.rotation.z = -0.2;
+        const bandGeometry = new THREE.TorusGeometry(0.48 * scale, 0.04 * scale, 8, 64);
+        const bandMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0xffffff,
+            shininess: 30
+        });
+        const band = new THREE.Mesh(bandGeometry, bandMaterial);
+        band.rotation.x = Math.PI / 2;
+        band.position.y = 0.1 * scale;
+        group.add(band);
         
         return group;
     }
